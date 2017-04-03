@@ -77,7 +77,14 @@ def load_content(connection, fp):
     return load_content_obj(connection, json.load(fp))
 
 
-def create_backup(db_filename, pretty=False):
+def create_backup(connection, json_filename, schema_filename, pretty):
+    with open(json_filename, 'w', encoding='utf8') as f:
+        save_json(connection, f, pretty)
+    with open(schema_filename, 'w', encoding='utf8') as f:
+        save_schema(connection, f)
+
+
+def backup_in_same_folder(db_filename, pretty=False):
     """
     Create a backup for a database, including schema & content. 
     
@@ -87,10 +94,15 @@ def create_backup(db_filename, pretty=False):
     (directory, file_name) = os.path.split(db_filename)
     base_file = os.path.splitext(file_name)[0]
     with sqlite3.connect(db_filename) as db:
-        with open(os.path.join(directory, base_file + ".json"), 'w', encoding='utf8') as f:
-            save_json(db, os.path.join(directory, f), pretty)
-        with open(os.path.join(directory, base_file + "_schema.json"), 'w', encoding='utf8') as f:
-            save_schema(db, f)
+        create_backup(db, os.path.join(directory, base_file + ".json"),
+                      os.path.join(directory, base_file + "_schema.sql"), pretty)
+
+
+def backup_connection(connection, output_folder, pretty=False):
+    create_backup(connection,
+                  os.path.join(output_folder, 'data.json'),
+                  os.path.join(output_folder, 'schema.sql'),
+                  pretty)
 
 
 def load_backup(db_filename, schema_filename, content_filename):
@@ -100,4 +112,3 @@ def load_backup(db_filename, schema_filename, content_filename):
             load_schema(db, f)
         with open(content_filename) as f:
             load_content(db, f)
-
