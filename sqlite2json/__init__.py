@@ -26,9 +26,9 @@ def save_json(connection, json_fp, pretty=False):
 
 
 def save_schema(connection, schema_fp):
-    for r in connection.execute("SELECT sql FROM sqlite_master WHERE type='table'"):
+    for r in connection.execute("SELECT sql FROM sqlite_master WHERE type='table' and name<>'sqlite_sequence'"):
         schema_fp.write(r[0])
-        schema_fp.write('\n\n')
+        schema_fp.write(';\n\n')
 
 
 def load_schema(connection, schema_fp):
